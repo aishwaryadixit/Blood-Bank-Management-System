@@ -1,3 +1,4 @@
+#MySQL Data base import
 import MySQLdb
 from Tkinter import *
 from PIL import Image
@@ -5,9 +6,11 @@ from PIL import Image
 db=MySQLdb.connect("localhost","root","@idx","bbms")
 cursor=db.cursor()
 root = Tk()
+#insert image
 image1=PhotoImage(file="/home/aishwarya/Downloads/bg.gif")
 panel=Label(root,image=image1,bg="black").place(x=0,y=0,relwidth=1,relheight=1)
 root.title("BLOOD BANK")
+#dimension
 root.geometry("1920x1080")
 root.configure(background='white')
 l3=Label(root,text="BLOOD BANK SYSTEM",bg='white',font = "Helvetica 15 bold").place(x=450,y=40,w=300,h=40)
@@ -19,7 +22,7 @@ l3=Label(root,text="Click to make a request for blood",bg='white',font="Helvetic
 b3=Button(root,text="Blood Request",command=lambda : requestblood()).place(x=80,y=350)
 b2=Button(root,text="Exit",command=lambda : stop(root)).place(x=80,y=400)	
 v = StringVar()
-
+# Function for donar entry
 def insertDonor(name,age,gender,address,contactno):
 	insert = "INSERT INTO donors(name,age,gender,address,contactno) VALUES('"+name+"','"+age+"','"+gender+"','"+address+"',"+"'"+contactno+"')"
 	try:
@@ -28,7 +31,7 @@ def insertDonor(name,age,gender,address,contactno):
 	except:
 		db.rollback()
 
-
+# function for insert blood
 def insertBlood(bloodgroup,platelet,rbc):
 	insert= "INSERT INTO blood(bloodgroup,platelet,rbc,date) VALUES('"+bloodgroup+"',"+"'"+platelet+"',"+"'"+rbc+"',"+"CURDATE())"
 		
