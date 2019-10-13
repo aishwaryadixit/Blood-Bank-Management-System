@@ -2,7 +2,7 @@ import MySQLdb
 from Tkinter import *
 from PIL import Image
 
-db=MySQLdb.connect("localhost","root","@idx","bbms")
+db=MySQLdb.connect("localhost","root","pswd","bbms")
 cursor=db.cursor()
 root = Tk()
 image1=PhotoImage(file="/home/aishwarya/Downloads/bg.gif")
