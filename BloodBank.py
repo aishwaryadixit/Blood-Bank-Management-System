@@ -1,24 +1,87 @@
-import MySQLdb
-from Tkinter import *
-from PIL import Image
+import mysql.connector as mysql
+from tkinter import *
+from tkinter import messagebox
+import json
+import os
 
-db=MySQLdb.connect("localhost","root","pswd","bbms")
+if not os.path.exists("config_db.json"):
+	f = open("config_db.json", "w")
+
+file1 = open("config_db.json","r") 
+db_conf=file1.read()
+file1.close()
+dbdt=['','','']
+if db_conf=="":
+	print("Let's configure your database first:")
+	dbdt[0]=input("Enter host/server ip: ")
+	dbdt[1]=input("Database username: ")
+	dbdt[2]=input("Database password: ")
+	saveit=json.dumps(dbdt)
+	db= mysql.connect(
+  		host=dbdt[0],
+  		user=dbdt[1],
+  		password=dbdt[2],
+			)
+	cursor=db.cursor()
+	qdb='''CREATE DATABASE IF NOT EXISTS `blood_donation_db`;
+		'''
+	cursor.execute(qdb)
+	db= mysql.connect(
+ 	 host=dbdt[0],
+ 	 user=dbdt[1],
+  	 password=dbdt[2],
+  	 database="blood_donation_db"
+	)
+	cursor=db.cursor()
+	qdb='''CREATE TABLE IF NOT EXISTS `blood` (
+  `bloodgroup` varchar(50) DEFAULT NULL,
+  `platelet` varchar(50) DEFAULT NULL,
+  `rbc` varchar(50) DEFAULT NULL,
+  `date` datetime DEFAULT NULL,
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+		'''
+	cursor.execute(qdb)
+	qdb='''CREATE TABLE IF NOT EXISTS `donors` (
+  `name` varchar(50) DEFAULT NULL,
+  `age` varchar(50) DEFAULT NULL,
+  `gender` varchar(50) DEFAULT NULL,
+  `address` varchar(50) DEFAULT NULL,
+  `contactno` varchar(50) DEFAULT NULL,
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+		'''
+	cursor.execute(qdb)
+	file1 = open("config_db.json","w+")
+	file1.write(saveit)
+	file1.close()
+else:
+	dbdt=json.loads(db_conf)
+db= mysql.connect(
+  host=dbdt[0],
+  user=dbdt[1],
+  password=dbdt[2],
+  database="blood_donation_db"
+)
 cursor=db.cursor()
-root = Tk()
-image1=PhotoImage(file="/home/aishwarya/Downloads/bg.gif")
-panel=Label(root,image=image1,bg="black").place(x=0,y=0,relwidth=1,relheight=1)
-root.title("BLOOD BANK")
-root.geometry("1920x1080")
-root.configure(background='white')
-l3=Label(root,text="BLOOD BANK SYSTEM",bg='white',font = "Helvetica 15 bold").place(x=450,y=40,w=300,h=40)
-l1=Label(root,text="Click to enter the details of the donor",bg='white',font="Helvetica 12").place(x=80,y=100,w=300,h=40)
-b1=Button(root,text="Donor Details",command=lambda : donordetails()).place(x=80,y=150)
-l2=Label(root,text="Click to enter the details of the blood",bg='white',font="Helvetica 12").place(x=80,y=200,w=300,h=40)
-b2=Button(root,text="Blood Details",command=lambda : blooddetails()).place(x=80,y=250)	
-l3=Label(root,text="Click to make a request for blood",bg='white',font="Helvetica 12").place(x=80,y=300,w=300,h=40)
-b3=Button(root,text="Blood Request",command=lambda : requestblood()).place(x=80,y=350)
-b2=Button(root,text="Exit",command=lambda : stop(root)).place(x=80,y=400)	
-v = StringVar()
+def mainfn():
+	root = Tk()
+
+	root.title("BLOOD BANK")
+	root.geometry("1920x1080")
+	root.configure(background='white')
+	l3=Label(root,text="BLOOD BANK SYSTEM",bg='white',font = "Helvetica 15 bold").place(x=450,y=40,w=300,h=40)
+	l1=Label(root,text="Click to enter the details of the donor",bg='white',font="Helvetica 12").place(x=80,y=100,w=300,h=40)
+	b1=Button(root,text="Donor Details",command=lambda : donordetails()).place(x=80,y=150)
+	l2=Label(root,text="Click to enter the details of the blood",bg='white',font="Helvetica 12").place(x=80,y=200,w=300,h=40)
+	b2=Button(root,text="Blood Details",command=lambda : blooddetails()).place(x=80,y=250)	
+	l3=Label(root,text="Click to make a request for blood",bg='white',font="Helvetica 12").place(x=80,y=300,w=300,h=40)
+	b3=Button(root,text="Blood Request",command=lambda : requestblood()).place(x=80,y=350)
+	b2=Button(root,text="Exit",command=lambda : stop(root)).place(x=80,y=400)	
+	v = StringVar()
 
 def insertDonor(name,age,gender,address,contactno):
 	insert = "INSERT INTO donors(name,age,gender,address,contactno) VALUES('"+name+"','"+age+"','"+gender+"','"+address+"',"+"'"+contactno+"')"
@@ -27,6 +90,8 @@ def insertDonor(name,age,gender,address,contactno):
 		db.commit()
 	except:
 		db.rollback()
+
+	blooddetails()
 
 
 def insertBlood(bloodgroup,platelet,rbc):
@@ -45,47 +110,45 @@ def retrieve(bg):
 		cursor.execute(request)		
 		rows=cursor.fetchall()		
 		db.commit()
-		print len(rows)
+		print (len(rows))
 		return rows
 	except:
 		db.rollback() 
 
-def sel():
-   selection = "You selected the option " + v.get()
-   print selection
-  
 
 def donordetails():
-	#global v
-	root=Toplevel()
+	global v
+	v=""
+	root=Tk()
 	root.title("BLOOD BANK")
 	root.geometry("1024x768")
 	root.configure(background ='#FF8F8F')
 	l1=Label(root,text="Name:",bg='white',font="Helvetica 12").place(x=40,y=40)
 	l2=Label(root,text="Age:",bg='white',font="Helvetica 12").place(x=40,y=80)
 	l3=Label(root,text="Gender:",bg='white',font="Helvetica 12").place(x=40,y=120)
-	l4=Label(root,text="Address:",bg='white',font="Helvetica 12").place(x=40,y=220)
-	l5=Label(root,text="Contact:",bg='white',font="Helvetica 12").place(x=40,y=260)
+	l4=Label(root,text="Address:",bg='white',font="Helvetica 12").place(x=40,y=160)
+	l5=Label(root,text="Contact:",bg='white',font="Helvetica 12").place(x=40,y=200)
 	e1=Entry(root)
 	e1.place(x=120,y=40)
 	e2=Entry(root)
 	e2.place(x=120,y=80)
-	r1=Radiobutton(root,text="Male",variable=v,value="Male",command=sel).place(x=120,y=120)
-	r2=Radiobutton(root,text="Female",variable=v,value="Female",command=sel).place(x=120,y=150)
-	r3=Radiobutton(root,text="Other",variable=v,value="Other",command=sel).place(x=120,y=180)
-	#e3=Entry(root)
-	#e3.place(x=100,y=120)
+	e3=Entry(root)
+	e3.place(x=120,y=120)
 	e4=Entry(root)
-	e4.place(x=120,y=220)
+	e4.place(x=120,y=160)
 	e5=Entry(root)
-	e5.place(x=120,y=260)
+	e5.place(x=120,y=200)
 	
-	#b2=Button(root,text="Back",command=lambda : stop(root)).place(x=120,y=300)
+	b2=Button(root,text="Back",command=lambda : stop(root)).place(x=120,y=300)
 	
-	#b1=Button(root,text="Submit",command=lambda : insertDonor(e1.get(),e2.get(),gen,e4.get(),e5.get())).place(x=40,y=300)
+	b1=Button(root,text="Submit",command=lambda : insertDonor(e1.get(),e2.get(),e3.get(),e4.get(),e5.get())).place(x=40,y=300)
 
 	root.mainloop()
 
+def newbloodin(a,b,c):
+	insertBlood(a,b,c)
+	messagebox.showinfo("Info", "Added Successfully")
+	
 def blooddetails():
 	root=Tk()
 	root.title("BLOOD BANK")
@@ -101,11 +164,7 @@ def blooddetails():
 	e2.place(x=350,y=80)
 	e3=Entry(root)
 	e3.place(x=350,y=120)
-	b2=Button(root,text="Back",command=lambda : stop(root)).place(x=200,y=160)
-	b1=Button(root,text="Submit",command=lambda : insertBlood(e1.get(),e2.get(),e3.get())).place(x=40,y=160)
-	
-	#img = PhotoImage(file="/home/aishwarya/Downloads/b1.gif")	
-	#panel = Label(root, image = img,bg="#F6B88D").place(x=200,y=200,w=400,h=400)
+	b1=Button(root,text="Submit",command=lambda : newbloodin(e1.get(),e2.get(),e3.get())).place(x=40,y=160)
 		
 	root.mainloop()	
 	
@@ -146,5 +205,52 @@ def requestblood():
 def stop(root):
 	root.destroy()
 
+def login():
+    #getting form data
+    uname=username.get()
+    pwd=password.get()
+    #applying empty validation
+    if uname=='' or pwd=='':
+        message.set("fill the empty field!!!")
+    else:
+      if uname=="admin" and pwd=="abc123":
+       loggedin="1"
+       message.set("Login success")
+       mainfn()
+       login_screen.destroy()
+      else:
+       message.set("Wrong username or password!!!")
+#defining loginform function
+def Loginform():
+    global login_screen
+    login_screen = Tk()
+    #Setting title of screen
+    login_screen.title("Login Form")
+    #setting height and width of screen
+    login_screen.geometry("300x250")
+    #declaring variable
+    global loggedin
+    global message
+    global username
+    global password
+    username = StringVar()
+    password = StringVar()
+    message=StringVar()
+    #Creating layout of login form
+    Label(login_screen,width="300", text="Please enter details below", bg="orange",fg="white").pack()
+    #Username Label
+    Label(login_screen, text="Username * ").place(x=20,y=40)
+    #Username textbox
+    Entry(login_screen, textvariable=username).place(x=90,y=42)
+    #Password Label
+    Label(login_screen, text="Password * ").place(x=20,y=80)
+    #Password textbox
+    Entry(login_screen, textvariable=password ,show="*").place(x=90,y=82)
+    #Label for displaying login status[success/failed]
+    Label(login_screen, text="",textvariable=message).place(x=95,y=100)
+    #Login button
+    Button(login_screen, text="Login", width=10, height=1, bg="orange",command=login).place(x=105,y=130)
+    login_screen.mainloop()
+#calling function Loginform
 
-root.mainloop()
+Loginform()
