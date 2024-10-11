@@ -5,7 +5,7 @@ from PIL import Image
 db=MySQLdb.connect("localhost","root","pswd","bbms")
 cursor=db.cursor()
 root = Tk()
-image1=PhotoImage(file="/home/aishwarya/Downloads/bg.gif")
+image1=PhotoImage(file="/home/user/Downloads/bg.gif")
 panel=Label(root,image=image1,bg="black").place(x=0,y=0,relwidth=1,relheight=1)
 root.title("BLOOD BANK")
 root.geometry("1920x1080")
